@@ -37,6 +37,7 @@
   "dependencies": {
     "bootstrap": "^4.0.0-beta",
     "jquery": "1.9.1 - 3",
+    "openzeppelin-solidity": "^1.12.0",
     "popper.js": "^1.14.3",
     "truffle-hdwallet-provider": "0.0.3",
     "web3": "1.0.0-beta.36"

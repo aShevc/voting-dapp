@@ -1,13 +1,16 @@
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 
-import election_artifacts from '../../build/contracts/Election.json'
+import election_artifacts from '../../build/contracts/ElectionV1.json'
+import election_storage_artifacts from '../../build/contracts/ElectionStorage.json'
 
 import ethUtils from 'ethereumjs-util';
 
 var Election = contract(election_artifacts);
+var ElectionStorage = contract(election_storage_artifacts);
 
 var election;
+var electionStorage;
 var accounts;
 var account;
 
@@ -20,6 +23,7 @@ window.App = {
     var self = this;
 
     Election.setProvider(web3.currentProvider);
+    ElectionStorage.setProvider(web3.currentProvider);
 
     web3.eth.getAccounts(function(err, accs) {
       if (err != null) {
@@ -47,6 +51,10 @@ window.App = {
       Election.deployed().then((inst) => {
         election = inst;
         window.election = inst;
+        return ElectionStorage.deployed();
+      }).then((inst) => {
+        electionStorage = inst;
+        window.electionStorage = inst;
         return self.render();
       });
   },
@@ -62,7 +70,7 @@ window.App = {
     $("#electionAddress").html(election.address);
 
     // Load contract data
-    election.candidatesCount().then(function(candidatesCount) {
+    electionStorage.candidatesCount().then(function(candidatesCount) {
       var candidatesResults = $("#candidatesResults");
       candidatesResults.empty();
 
@@ -70,7 +78,7 @@ window.App = {
       candidatesSelect.empty();
 
       for (var i = 1; i <= candidatesCount; i++) {
-        election.candidates(i).then(function(candidate) {
+        electionStorage.candidates(i).then(function(candidate) {
           var id = candidate[0];
           var name = candidate[1];
           var voteCount = candidate[2];
