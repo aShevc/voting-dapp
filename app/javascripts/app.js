@@ -1,7 +1,7 @@
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 
-import election_artifacts from '../../build/contracts/ElectionV1.json'
+import election_artifacts from '../../build/contracts/ElectionV2.json'
 import election_storage_artifacts from '../../build/contracts/ElectionStorage.json'
 
 import ethUtils from 'ethereumjs-util';
@@ -20,8 +20,6 @@ var isWeb3Provided = false;
 window.App = {
 
   start: function() {
-    var self = this;
-
     Election.setProvider(web3.currentProvider);
     ElectionStorage.setProvider(web3.currentProvider);
 
@@ -41,12 +39,11 @@ window.App = {
 
       console.log('Accounts available:' + accounts);
 
-      self.initializeContracts();
+      App.initializeContracts();
     });
   },
 
   initializeContracts: function() {
-      var self = this;
 
       Election.deployed().then((inst) => {
         election = inst;
@@ -55,7 +52,9 @@ window.App = {
       }).then((inst) => {
         electionStorage = inst;
         window.electionStorage = inst;
-        return self.render();
+
+        App.listenForEvents();
+        return App.render();
       });
   },
 
@@ -100,7 +99,6 @@ window.App = {
   },
 
   castVote: function() {
-    var self = this;
     var candidateId = $('#candidatesSelect').val();
 
     election.vote(candidateId, {from: account}).then(function(result) {
@@ -108,7 +106,7 @@ window.App = {
         App.render();
     }).catch(function(err) {
       console.error(err);
-      self.showVoteAlert("Got an error trying to vote")
+      App.showVoteAlert("Got an error trying to vote")
     });
   },
 
@@ -117,6 +115,17 @@ window.App = {
     $('#voteAlert').addClass('show')
     $('#voteAlert').removeClass('collapse')
   },
+
+  listenForEvents: function() {
+    web3.eth.getBlockNumber().then((blockNumber) => {
+        election.votedEvent({}, {
+            fromBlock: blockNumber
+        }).watch(function(error, event) {
+            console.log("event triggered", event)
+            App.render();
+        })
+    });
+  }
 }
 
 export const loadWeb3 = async() => {
