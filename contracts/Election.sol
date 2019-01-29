@@ -23,4 +23,12 @@ contract Election {
         candidatesCount ++;
         candidates[candidatesCount] = Candidate(candidatesCount, _name, 0);
     }
+
+    function vote (uint _candidateId) public {
+        // require a valid candidate
+        require(_candidateId > 0 && _candidateId <= candidatesCount);
+
+        // update candidate vote Count
+        candidates[_candidateId].voteCount ++;
+    }
 }

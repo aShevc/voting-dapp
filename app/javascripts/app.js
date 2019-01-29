@@ -4,7 +4,6 @@ import { default as contract } from 'truffle-contract'
 import election_artifacts from '../../build/contracts/Election.json'
 
 import ethUtils from 'ethereumjs-util';
-var bs = require('bootstrap');
 
 var Election = contract(election_artifacts);
 
@@ -67,6 +66,9 @@ window.App = {
       var candidatesResults = $("#candidatesResults");
       candidatesResults.empty();
 
+      var candidatesSelect = $('#candidatesSelect');
+      candidatesSelect.empty();
+
       for (var i = 1; i <= candidatesCount; i++) {
         election.candidates(i).then(function(candidate) {
           var id = candidate[0];
@@ -76,6 +78,9 @@ window.App = {
           // Render candidate Result
           var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
           candidatesResults.append(candidateTemplate);
+          // Render candidate ballot option
+          var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
+          candidatesSelect.append(candidateOption);
         });
       }
 
@@ -84,7 +89,26 @@ window.App = {
     }).catch(function(error) {
       console.warn(error);
     });
-  }
+  },
+
+  castVote: function() {
+    var self = this;
+    var candidateId = $('#candidatesSelect').val();
+
+    election.vote(candidateId, {from: account}).then(function(result) {
+        $("#voteCastForm").modal('hide')
+        App.render();
+    }).catch(function(err) {
+      console.error(err);
+      self.showVoteAlert("Got an error trying to vote")
+    });
+  },
+
+  showVoteAlert: function(msg) {
+    $('#voteErrorMsg').html(msg)
+    $('#voteAlert').addClass('show')
+    $('#voteAlert').removeClass('collapse')
+  },
 }
 
 export const loadWeb3 = async() => {
